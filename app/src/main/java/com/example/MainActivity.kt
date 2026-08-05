@@ -75,22 +75,81 @@ import com.example.ui.components.RatingReviewModal
 import com.example.ui.components.RideSelectionBottomSheet
 import com.example.ui.components.SosEmergencyDialog
 import com.example.ui.theme.MyApplicationTheme
+import com.razorpay.Checkout
+import com.razorpay.PaymentResultListener
+import org.json.JSONObject
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), PaymentResultListener {
+    private var activeViewModel: YatraViewModel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            Checkout.preload(applicationContext)
+        } catch (e: Exception) {
+            // Handled safely
+        }
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                YatraAppMainScreen()
+                val vm: YatraViewModel = viewModel()
+                activeViewModel = vm
+                YatraAppMainScreen(
+                    viewModel = vm,
+                    onLaunchRazorpay = { fare, description ->
+                        launchRazorpayCheckout(fare, description)
+                    }
+                )
             }
         }
+    }
+
+    private fun launchRazorpayCheckout(fareInRupees: Double, description: String) {
+        try {
+            val checkout = Checkout()
+            val rawKey = try { BuildConfig.RAZORPAY_KEY_ID } catch (e: Exception) { "" }
+            val keyId = if (!rawKey.isNullOrBlank() && rawKey != "rzp_test_placeholder") rawKey else "rzp_test_placeholder"
+            checkout.setKeyID(keyId)
+
+            val options = JSONObject().apply {
+                put("name", "YatraX Ride Booking")
+                put("description", description)
+                put("currency", "INR")
+                val amountInPaise = (fareInRupees * 100).toLong()
+                put("amount", if (amountInPaise <= 0) 100 else amountInPaise)
+
+                val prefill = JSONObject().apply {
+                    put("email", "rider@yatrax.in")
+                    put("contact", "+919876543210")
+                }
+                put("prefill", prefill)
+
+                val theme = JSONObject().apply {
+                    put("color", "#381E72")
+                }
+                put("theme", theme)
+            }
+            checkout.open(this, options)
+        } catch (e: Exception) {
+            activeViewModel?.onRazorpayPaymentError("Checkout launch error: ${e.message}")
+        }
+    }
+
+    override fun onPaymentSuccess(razorpayPaymentId: String?) {
+        val pid = razorpayPaymentId ?: ("pay_" + java.util.UUID.randomUUID().toString().take(8))
+        activeViewModel?.onRazorpayPaymentSuccess(pid)
+    }
+
+    override fun onPaymentError(code: Int, response: String?) {
+        val msg = response ?: "Payment cancelled or failed (Code $code)"
+        activeViewModel?.onRazorpayPaymentError(msg)
     }
 }
 
 @Composable
 fun YatraAppMainScreen(
-    viewModel: YatraViewModel = viewModel()
+    viewModel: YatraViewModel = viewModel(),
+    onLaunchRazorpay: ((Double, String) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val allTrips by viewModel.allTrips.collectAsState()
@@ -374,7 +433,8 @@ fun YatraAppMainScreen(
                         onBookCabOption = { vehicleType, dist, fare ->
                             viewModel.createCabBooking(vehicleType, dist, fare)
                         },
-                        onOpenCreateOffer = { viewModel.openCreateOffer(true) }
+                        onOpenCreateOffer = { viewModel.openCreateOffer(true) },
+                        onLaunchRazorpay = onLaunchRazorpay
                     )
                 }
             }

@@ -59,6 +59,9 @@ import com.example.data.model.RideMode
 import com.example.data.model.VehicleType
 import kotlin.math.roundToInt
 
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.CreditCard
+
 @Composable
 fun RideSelectionBottomSheet(
     rideMode: RideMode,
@@ -75,6 +78,7 @@ fun RideSelectionBottomSheet(
     onBookCarpool: (TripEntity) -> Unit,
     onBookCabOption: (VehicleType, Double, Double) -> Unit,
     onOpenCreateOffer: () -> Unit,
+    onLaunchRazorpay: ((Double, String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     // Distance estimate in Kanpur (mocked Euclidean based on lat/lng)
@@ -222,7 +226,10 @@ fun RideSelectionBottomSheet(
                         items(filteredPools) { trip ->
                             CarpoolItemCard(
                                 trip = trip,
-                                onBook = { onBookCarpool(trip) }
+                                onBook = {
+                                    onBookCarpool(trip)
+                                    onLaunchRazorpay?.invoke(trip.pricePerSeatOrKm, "Carpool seat with ${trip.hostName}")
+                                }
                             )
                         }
                     }
@@ -242,7 +249,7 @@ fun RideSelectionBottomSheet(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
+                        .height(180.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(options) { (vType, baseRate, icon) ->
@@ -308,14 +315,46 @@ fun RideSelectionBottomSheet(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Razorpay Payment Badge
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFF381E72).copy(alpha = 0.5f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF075E54)),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Payment,
+                            contentDescription = "Razorpay",
+                            tint = Color(0xFF22C55E),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Secured by Razorpay Test Gateway (UPI / Cards / NetBanking)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFD0BCFF)
+                        )
+                    }
+                }
 
                 // Instant Booking Action Button
                 val selectedOption = options.first { it.first == selectedVehicleType }
                 val selectedFare = (roundedDist * selectedOption.second * surgeMultiplier).roundToInt().toDouble()
 
                 Button(
-                    onClick = { onBookCabOption(selectedVehicleType, roundedDist, selectedFare) },
+                    onClick = {
+                        val desc = "${selectedVehicleType.displayName} from ${pickupLocation.name} to ${dropLocation.name}"
+                        onBookCabOption(selectedVehicleType, roundedDist, selectedFare)
+                        onLaunchRazorpay?.invoke(selectedFare, desc)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
@@ -327,12 +366,13 @@ fun RideSelectionBottomSheet(
                     )
                 ) {
                     Text(
-                        text = "Book ${selectedVehicleType.displayName} • ₹${selectedFare.toInt()}",
+                        text = "Pay ₹${selectedFare.toInt()} with Razorpay",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
+
         }
     }
 }
