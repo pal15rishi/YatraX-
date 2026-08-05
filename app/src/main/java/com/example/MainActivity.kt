@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Female
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Shield
@@ -63,6 +64,7 @@ import com.example.data.model.VehicleType
 import com.example.data.ui.viewmodel.YatraViewModel
 import com.example.ui.components.ActiveTripDrawer
 import com.example.ui.components.AdminPanelScreen
+import com.example.ui.components.AuthModalScreen
 import com.example.ui.components.ChatModalScreen
 import com.example.ui.components.CreateCarpoolOfferModal
 import com.example.ui.components.KanpurMapView
@@ -98,10 +100,12 @@ fun YatraAppMainScreen(
 
     var otpInputState by remember { mutableStateOf("") }
     var otpErrorState by remember { mutableStateOf<String?>(null) }
+    var activeNotification by remember { mutableStateOf<String?>(null) }
 
-    // Show Snackbar messages when updated in ViewModel
+    // Show Snackbar & Ride Notification Popups when updated in ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
+            activeNotification = msg
             snackbarHostState.showSnackbar(msg)
             viewModel.clearSnackbar()
         }
@@ -131,12 +135,16 @@ fun YatraAppMainScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 2. Top Header Controls (Mode Switcher + Search Bar + Branding Bar)
+            // 2. Top Header Controls (Ride Notifications + Mode Switcher + Search Bar + Branding Bar)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
             ) {
+                com.example.ui.components.RideNotificationBanner(
+                    message = activeNotification,
+                    onDismiss = { activeNotification = null }
+                )
                 // YatraX Branding & Fast Switcher Bar
                 Surface(
                     modifier = Modifier
@@ -182,8 +190,33 @@ fun YatraAppMainScreen(
                             )
                         }
 
-                        // Top Action Buttons: Driver KYC & Admin Portal
+                        // Top Action Buttons: My Bookings, Driver KYC & Admin Portal
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { viewModel.openMyBookings(true) }
+                                    .testTag("my_bookings_tab_button"),
+                                color = Color(0xFF381E72),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD0BCFF))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.DirectionsCar,
+                                        contentDescription = "My Bookings",
+                                        tint = Color(0xFFD0BCFF),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("My Bookings", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
                             Surface(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
@@ -203,27 +236,28 @@ fun YatraAppMainScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Driver KYC", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("KYC", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Surface(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { viewModel.openAdminPanel(true) }
-                                    .testTag("admin_portal_fab"),
-                                color = Color(0xFF381E72)
-                            ) {
-                                Icon(
-                                    Icons.Default.AdminPanelSettings,
-                                    contentDescription = "Admin",
-                                    tint = Color(0xFFD0BCFF),
+                            if (uiState.isLoggedIn && uiState.userRole == "ADMIN") {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
                                     modifier = Modifier
-                                        .padding(8.dp)
-                                        .size(18.dp)
-                                )
+                                        .clip(CircleShape)
+                                        .clickable { viewModel.openAdminPanel(true) }
+                                        .testTag("admin_portal_fab"),
+                                    color = Color(0xFF381E72)
+                                ) {
+                                    Icon(
+                                        Icons.Default.AdminPanelSettings,
+                                        contentDescription = "Admin",
+                                        tint = Color(0xFFFF6D00),
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -235,11 +269,14 @@ fun YatraAppMainScreen(
                     isPinkShieldActive = uiState.isPinkShieldActive,
                     isNightSurgeActive = uiState.isSimulatedNightMode,
                     kycStatus = uiState.userKyc?.status,
+                    isAdmin = uiState.isLoggedIn && uiState.userRole == "ADMIN",
+                    userPhone = uiState.authPhone,
                     onModeSelected = { viewModel.selectRideMode(it) },
                     onTogglePinkShield = { viewModel.togglePinkShield() },
                     onToggleNightMode = { viewModel.toggleSimulatedNightMode() },
                     onOpenKycScreen = { viewModel.openKycScreen(true) },
-                    onOpenAdminPanel = { viewModel.openAdminPanel(true) }
+                    onOpenAdminPanel = { viewModel.openAdminPanel(true) },
+                    onLogout = { viewModel.logout() }
                 )
 
                 // Pickup & Drop Landmark Search Engine
@@ -408,8 +445,17 @@ fun YatraAppMainScreen(
                 )
             }
 
-            // Owner Admin Panel
-            if (uiState.isAdminPanelOpen) {
+            // Phone + OTP Authentication System Overlay
+            if (!uiState.isLoggedIn || uiState.isAuthModalOpen) {
+                AuthModalScreen(
+                    onSendOtp = { phone -> viewModel.sendOtp(phone) },
+                    onVerifyOtp = { phone, otp, role -> viewModel.verifyOtp(phone, otp, role) },
+                    onDismiss = { viewModel.openAuthModal(false) }
+                )
+            }
+
+            // Owner Admin Panel (ONLY accessible if logged in as Admin)
+            if (uiState.isAdminPanelOpen && uiState.isLoggedIn && uiState.userRole == "ADMIN") {
                 val adminDriversList = pendingKycs.map { kyc ->
                     DriverProfileEntity(
                         id = kyc.id,
@@ -446,8 +492,23 @@ fun YatraAppMainScreen(
                         viewModel.updateFareRates(c, cb, a, b, uiState.fareConfig.nightSurgeMultiplier)
                     },
                     onToggleNightSurge = { viewModel.toggleSimulatedNightMode() },
-                    onResetDemoData = { /* Reset */ },
+                    onResetDemoData = { viewModel.resetDemoData() },
                     onClose = { viewModel.openAdminPanel(false) }
+                )
+            }
+
+            // My Bookings & Active Rides Overlay Modal
+            if (uiState.isMyBookingsOpen) {
+                com.example.ui.components.MyBookingsModal(
+                    trips = allTrips,
+                    onSelectActiveTrip = { trip ->
+                        viewModel.selectActiveTrip(trip)
+                    },
+                    onOpenChat = { trip ->
+                        viewModel.selectActiveTrip(trip)
+                        viewModel.openChatModal(true)
+                    },
+                    onClose = { viewModel.openMyBookings(false) }
                 )
             }
 
