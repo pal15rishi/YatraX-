@@ -1,0 +1,6 @@
+{
+  "name": "YatraX",
+  "description": "Full-stack hybrid carpool and cab platform with KYC, interactive Kanpur map, Pink Shield safety, and admin panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
