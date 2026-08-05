@@ -63,6 +63,18 @@ interface YatraDao {
     @Query("UPDATE trips SET status = :status, riderId = :riderId, riderName = :riderName WHERE id = :tripId")
     suspend fun acceptTrip(tripId: String, riderId: String, riderName: String, status: String = "ACCEPTED")
 
+    @Query("UPDATE trips SET availableSeats = :availableSeats, status = :status, riderId = :riderId, riderName = :riderName WHERE id = :tripId")
+    suspend fun acceptTripWithSeats(tripId: String, riderId: String, riderName: String, availableSeats: Int, status: String)
+
+    @Query("DELETE FROM trips")
+    suspend fun deleteAllTrips()
+
+    @Query("DELETE FROM kyc_documents")
+    suspend fun deleteAllKycDocuments()
+
+    @Query("DELETE FROM messages")
+    suspend fun deleteAllMessages()
+
     // Messages / Chat
     @Query("SELECT * FROM messages WHERE tripId = :tripId ORDER BY timestamp ASC")
     fun getMessagesForTrip(tripId: String): Flow<List<MessageEntity>>

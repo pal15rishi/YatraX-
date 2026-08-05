@@ -97,10 +97,16 @@ fun LocationSearchBar(
                         .testTag("pickup_location_input"),
                     placeholder = { Text("Search Pickup Point in Kanpur...") },
                     singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
                         focusedBorderColor = Color(0xFF22C55E),
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        cursorColor = Color.White,
+                        focusedPlaceholderColor = Color(0xFFCAC4D0),
+                        unfocusedPlaceholderColor = Color(0xFFCAC4D0)
                     ),
                     trailingIcon = {
                         if (activeSearchField == "PICKUP" && pickupQuery.isNotEmpty()) {
@@ -138,10 +144,16 @@ fun LocationSearchBar(
                         .testTag("drop_location_input"),
                     placeholder = { Text("Search Destination in Kanpur...") },
                     singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
                         focusedBorderColor = Color(0xFFEF4444),
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        cursorColor = Color.White,
+                        focusedPlaceholderColor = Color(0xFFCAC4D0),
+                        unfocusedPlaceholderColor = Color(0xFFCAC4D0)
                     ),
                     trailingIcon = {
                         if (activeSearchField == "DROP" && dropQuery.isNotEmpty()) {

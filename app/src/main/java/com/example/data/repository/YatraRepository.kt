@@ -42,7 +42,26 @@ class YatraRepository(private val dao: YatraDao) {
     suspend fun createTrip(trip: TripEntity) = dao.insertTrip(trip)
 
     suspend fun bookTrip(tripId: String, riderId: String, riderName: String) {
-        dao.acceptTrip(tripId, riderId, riderName, status = "ACCEPTED")
+        val trip = dao.getTripByIdDirect(tripId)
+        if (trip != null) {
+            val updatedSeats = maxOf(0, trip.availableSeats - 1)
+            dao.acceptTripWithSeats(
+                tripId = tripId,
+                riderId = riderId,
+                riderName = riderName,
+                availableSeats = updatedSeats,
+                status = "ACCEPTED"
+            )
+        } else {
+            dao.acceptTrip(tripId, riderId, riderName, status = "ACCEPTED")
+        }
+    }
+
+    suspend fun resetDemoData() {
+        dao.deleteAllTrips()
+        dao.deleteAllKycDocuments()
+        dao.deleteAllMessages()
+        seedInitialData()
     }
 
     suspend fun updateTripStatus(tripId: String, status: String) {

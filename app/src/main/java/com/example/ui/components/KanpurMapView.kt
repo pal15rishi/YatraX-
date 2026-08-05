@@ -249,11 +249,23 @@ fun KanpurMapView(
                 quadraticTo(midX, midY, dropPos.x, dropPos.y)
             }
 
+            // Glow outline for selected/active route
+            if (activeTripStatus != null) {
+                drawPath(
+                    path = routePath,
+                    color = Color(0xFF38BDF8).copy(alpha = 0.5f),
+                    style = Stroke(
+                        width = 14f * zoomScale,
+                        cap = StrokeCap.Round
+                    )
+                )
+            }
+
             drawPath(
                 path = routePath,
-                color = Color(0xFFFF6D00),
+                color = if (activeTripStatus != null) Color(0xFF38BDF8) else Color(0xFFFF6D00),
                 style = Stroke(
-                    width = 6f * zoomScale,
+                    width = 7f * zoomScale,
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 12f), 0f),
                     cap = StrokeCap.Round
                 )

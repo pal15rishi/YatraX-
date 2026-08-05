@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -278,9 +281,15 @@ fun ActiveTripDrawer(
                                     .testTag("otp_verification_input"),
                                 placeholder = { Text("Enter 4-digit OTP", fontSize = 12.sp) },
                                 singleLine = true,
+                                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
                                 colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
                                     focusedBorderColor = Color(0xFF22C55E),
-                                    unfocusedBorderColor = Color(0xFF49454F)
+                                    unfocusedBorderColor = Color(0xFF49454F),
+                                    cursorColor = Color.White,
+                                    focusedPlaceholderColor = Color(0xFFCAC4D0),
+                                    unfocusedPlaceholderColor = Color(0xFFCAC4D0)
                                 ),
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -314,11 +323,37 @@ fun ActiveTripDrawer(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Action Buttons Row: Chat, SOS, Complete, Cancel
+            val context = LocalContext.current
+
+            // Action Buttons Row: Call Driver, Chat, SOS
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                // Call Driver
+                Button(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${trip.hostPhone}"))
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Handled gracefully if no phone app
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("call_driver_button"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF22C55E),
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Call", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
                 // In-App Chat
                 OutlinedButton(
                     onClick = onOpenChat,
@@ -347,7 +382,7 @@ fun ActiveTripDrawer(
                 ) {
                     Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("SOS Alert", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("SOS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 

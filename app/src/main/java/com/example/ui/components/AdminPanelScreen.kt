@@ -150,7 +150,16 @@ fun AdminPanelScreen(
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Carpool ₹/km") },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFFF6D00))
+                                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFFFF6D00),
+                                    unfocusedBorderColor = Color(0xFF49454F),
+                                    focusedLabelColor = Color(0xFFFF6D00),
+                                    unfocusedLabelColor = Color(0xFFCAC4D0),
+                                    cursorColor = Color.White
+                                )
                             )
                             OutlinedTextField(
                                 value = editCabRate,
@@ -158,7 +167,16 @@ fun AdminPanelScreen(
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Cab ₹/km") },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFD0BCFF))
+                                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFFD0BCFF),
+                                    unfocusedBorderColor = Color(0xFF49454F),
+                                    focusedLabelColor = Color(0xFFD0BCFF),
+                                    unfocusedLabelColor = Color(0xFFCAC4D0),
+                                    cursorColor = Color.White
+                                )
                             )
                         }
 
@@ -174,7 +192,16 @@ fun AdminPanelScreen(
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Auto ₹/km") },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFF59E0B))
+                                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFFF59E0B),
+                                    unfocusedBorderColor = Color(0xFF49454F),
+                                    focusedLabelColor = Color(0xFFF59E0B),
+                                    unfocusedLabelColor = Color(0xFFCAC4D0),
+                                    cursorColor = Color.White
+                                )
                             )
                             OutlinedTextField(
                                 value = editBikeRate,
@@ -182,7 +209,16 @@ fun AdminPanelScreen(
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Bike ₹/km") },
                                 singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF22C55E))
+                                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFF22C55E),
+                                    unfocusedBorderColor = Color(0xFF49454F),
+                                    focusedLabelColor = Color(0xFF22C55E),
+                                    unfocusedLabelColor = Color(0xFFCAC4D0),
+                                    cursorColor = Color.White
+                                )
                             )
                         }
 
@@ -227,6 +263,22 @@ fun AdminPanelScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD0BCFF), contentColor = Color(0xFF381E72))
                         ) {
                             Text("Save Tariff Rates", fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = onResetDemoData,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("reset_demo_data_button"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444))
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Reset Demo Data (Factory State)", fontWeight = FontWeight.Bold)
                         }
                     }
                 }

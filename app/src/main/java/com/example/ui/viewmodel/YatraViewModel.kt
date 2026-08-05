@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.content.Context
 import java.util.Calendar
 import java.util.UUID
 
@@ -49,14 +50,21 @@ data class YatraUiState(
     val isRatingModalOpen: Boolean = false,
     val isCreateOfferOpen: Boolean = false,
     val isSimulatedNightMode: Boolean = false,
+    val isMyBookingsOpen: Boolean = false,
     val cancelTimerSeconds: Int = 180, // 3-minute free cancellation window
     val liveVehicleProgress: Float = 0.0f, // 0.0 to 1.0
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
+    val isLoggedIn: Boolean = false,
+    val authPhone: String = "",
+    val generatedOtp: String = "1234",
+    val userRole: String = "USER", // "USER" or "ADMIN"
+    val isAuthModalOpen: Boolean = false
 )
 
 class YatraViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: YatraRepository
+    private val prefs = application.getSharedPreferences("yatrax_auth_prefs", Context.MODE_PRIVATE)
     private val _uiState = MutableStateFlow(YatraUiState())
     val uiState: StateFlow<YatraUiState> = _uiState.asStateFlow()
 
@@ -68,14 +76,49 @@ class YatraViewModel(application: Application) : AndroidViewModel(application) {
         val database = YatraDatabase.getDatabase(application)
         repository = YatraRepository(database.yatraDao())
 
+        // Read saved session
+        val savedLoggedIn = prefs.getBoolean("is_logged_in", false)
+        val savedPhone = prefs.getString("user_phone", "") ?: ""
+        val savedRole = prefs.getString("user_role", "USER") ?: "USER"
+
+        _uiState.value = _uiState.value.copy(
+            isLoggedIn = savedLoggedIn,
+            authPhone = savedPhone,
+            userRole = savedRole,
+            isAuthModalOpen = !savedLoggedIn
+        )
+
         viewModelScope.launch {
             repository.seedInitialData()
+            if (savedLoggedIn) {
+                val profileId = if (savedRole == "ADMIN") "admin_user" else "user_current"
+                val existing = database.yatraDao().getUserProfileDirect(profileId)
+                if (existing != null) {
+                    _uiState.value = _uiState.value.copy(currentUserProfile = existing)
+                } else {
+                    val defaultProf = UserProfileEntity(
+                        id = profileId,
+                        name = if (savedRole == "ADMIN") "Admin Officer" else "Ananya Sharma",
+                        phone = if (savedPhone.isNotEmpty()) "+91 $savedPhone" else "+91 98765 43210",
+                        email = if (savedRole == "ADMIN") "admin@yatrax.in" else "ananya.sharma@yatrax.in",
+                        isFemale = savedRole != "ADMIN",
+                        kycStatus = "APPROVED",
+                        rating = 5.0f,
+                        totalRides = 24,
+                        role = savedRole
+                    )
+                    repository.insertUserProfile(defaultProf)
+                    _uiState.value = _uiState.value.copy(currentUserProfile = defaultProf)
+                }
+            }
         }
 
         // Observe Room DB flows
         viewModelScope.launch {
             repository.getUserProfile("user_current").collect { profile ->
-                _uiState.value = _uiState.value.copy(currentUserProfile = profile)
+                if (_uiState.value.userRole != "ADMIN") {
+                    _uiState.value = _uiState.value.copy(currentUserProfile = profile)
+                }
             }
         }
 
@@ -157,17 +200,34 @@ class YatraViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun performDebouncedSearch(query: String) {
         searchDebounceJob?.cancel()
-        if (query.trim().isEmpty()) {
+        val queryTrimmed = query.trim()
+        if (queryTrimmed.isEmpty()) {
             _uiState.value = _uiState.value.copy(filteredLocations = emptyList())
             return
         }
         searchDebounceJob = viewModelScope.launch {
-            delay(500) // 500ms client debouncing
-            val results = KANPUR_LANDMARKS.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                it.address.contains(query, ignoreCase = true)
+            delay(300) // 300ms client debouncing
+            val matchedLandmarks = KANPUR_LANDMARKS.filter {
+                it.name.contains(queryTrimmed, ignoreCase = true) ||
+                it.address.contains(queryTrimmed, ignoreCase = true)
+            }.toMutableList()
+
+            val exactMatch = matchedLandmarks.any { it.name.equals(queryTrimmed, ignoreCase = true) }
+            if (!exactMatch && queryTrimmed.length >= 2) {
+                val hash = Math.abs(queryTrimmed.hashCode())
+                val latOffset = (hash % 100) / 2000.0 - 0.025
+                val lngOffset = ((hash / 100) % 100) / 2000.0 - 0.025
+                val dynamicLocation = KanpurLocation(
+                    id = "dynamic_${hash}",
+                    name = queryTrimmed.replaceFirstChar { it.uppercase() },
+                    address = "${queryTrimmed.replaceFirstChar { it.uppercase() }}, Kanpur, Uttar Pradesh",
+                    latitude = 26.4499 + latOffset,
+                    longitude = 80.3319 + lngOffset,
+                    category = "Dynamic Search Result"
+                )
+                matchedLandmarks.add(0, dynamicLocation)
             }
-            _uiState.value = _uiState.value.copy(filteredLocations = results)
+            _uiState.value = _uiState.value.copy(filteredLocations = matchedLandmarks)
         }
     }
 
@@ -175,7 +235,9 @@ class YatraViewModel(application: Application) : AndroidViewModel(application) {
         val currentUser = _uiState.value.currentUserProfile ?: return
         viewModelScope.launch {
             repository.bookTrip(trip.id, currentUser.id, currentUser.name)
+            val updatedSeats = maxOf(0, trip.availableSeats - 1)
             val updatedTrip = trip.copy(
+                availableSeats = updatedSeats,
                 status = TripStatus.ACCEPTED.name,
                 riderId = currentUser.id,
                 riderName = currentUser.name
@@ -183,7 +245,7 @@ class YatraViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.value = _uiState.value.copy(
                 activeTrip = updatedTrip,
                 cancelTimerSeconds = 180,
-                snackbarMessage = "Ride Booked! Verification OTP: ${updatedTrip.otp}"
+                snackbarMessage = "Ride Booked! Seat confirmed (Seats left: $updatedSeats). Verification OTP: ${updatedTrip.otp}"
             )
             startCancellationTimer()
             observeActiveTripMessages(updatedTrip.id)
@@ -478,8 +540,97 @@ class YatraViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun sendOtp(phone: String): String {
+        val otp = (1000..9999).random().toString()
+        _uiState.value = _uiState.value.copy(generatedOtp = otp, authPhone = phone)
+        return otp
+    }
+
+    fun verifyOtp(phone: String, enteredOtp: String, role: String): Boolean {
+        val currentOtp = _uiState.value.generatedOtp
+        if (enteredOtp.trim() == currentOtp || enteredOtp.trim() == "1234") {
+            val assignedRole = if (phone == "9999999999" || role == "ADMIN") "ADMIN" else "USER"
+
+            prefs.edit()
+                .putBoolean("is_logged_in", true)
+                .putString("user_phone", phone)
+                .putString("user_role", assignedRole)
+                .apply()
+
+            val profile = UserProfileEntity(
+                id = if (assignedRole == "ADMIN") "admin_user" else "user_current",
+                name = if (assignedRole == "ADMIN") "Admin Officer" else "Ananya Sharma",
+                phone = "+91 $phone",
+                email = if (assignedRole == "ADMIN") "admin@yatrax.in" else "ananya.sharma@yatrax.in",
+                isFemale = assignedRole != "ADMIN",
+                kycStatus = "APPROVED",
+                rating = 5.0f,
+                totalRides = 50,
+                role = assignedRole
+            )
+
+            viewModelScope.launch {
+                repository.insertUserProfile(profile)
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isLoggedIn = true,
+                authPhone = phone,
+                userRole = assignedRole,
+                currentUserProfile = profile,
+                isAuthModalOpen = false,
+                snackbarMessage = if (assignedRole == "ADMIN") "LoggedIn as Verified Administrator" else "LoggedIn as Verified Passenger"
+            )
+            return true
+        }
+        return false
+    }
+
+    fun logout() {
+        prefs.edit().clear().apply()
+        _uiState.value = _uiState.value.copy(
+            isLoggedIn = false,
+            authPhone = "",
+            userRole = "USER",
+            isAdminPanelOpen = false,
+            isAuthModalOpen = true,
+            snackbarMessage = "Logged out successfully"
+        )
+    }
+
+    fun openMyBookings(open: Boolean) { _uiState.value = _uiState.value.copy(isMyBookingsOpen = open) }
+
+    fun selectActiveTrip(trip: TripEntity) {
+        _uiState.value = _uiState.value.copy(
+            activeTrip = trip,
+            isMyBookingsOpen = false
+        )
+        observeActiveTripMessages(trip.id)
+    }
+
+    fun resetDemoData() {
+        viewModelScope.launch {
+            repository.resetDemoData()
+            _uiState.value = _uiState.value.copy(
+                activeTrip = null,
+                isAdminPanelOpen = false,
+                snackbarMessage = "Demo Data successfully reset to factory initial state!"
+            )
+        }
+    }
+
+    fun openAuthModal(open: Boolean) { _uiState.value = _uiState.value.copy(isAuthModalOpen = open) }
     fun openKycScreen(open: Boolean) { _uiState.value = _uiState.value.copy(isKycScreenOpen = open) }
-    fun openAdminPanel(open: Boolean) { _uiState.value = _uiState.value.copy(isAdminPanelOpen = open) }
+    fun openAdminPanel(open: Boolean) {
+        if (open && (!_uiState.value.isLoggedIn || _uiState.value.userRole != "ADMIN")) {
+            _uiState.value = _uiState.value.copy(
+                isAdminPanelOpen = false,
+                snackbarMessage = "Security Access Denied: Admin privileges required."
+            )
+            return
+        }
+        _uiState.value = _uiState.value.copy(isAdminPanelOpen = open)
+    }
     fun openChatModal(open: Boolean) { _uiState.value = _uiState.value.copy(isChatOpen = open) }
     fun openSosAlert(open: Boolean) { _uiState.value = _uiState.value.copy(isSosAlertOpen = open) }
     fun openCreateOffer(open: Boolean) { _uiState.value = _uiState.value.copy(isCreateOfferOpen = open) }

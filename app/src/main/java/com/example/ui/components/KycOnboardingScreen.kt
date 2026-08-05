@@ -207,7 +207,16 @@ fun KycOnboardingScreen(
                         .testTag("kyc_name_input"),
                     label = { Text("Full Name (as per DL)") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFD0BCFF))
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFD0BCFF),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFD0BCFF),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -220,7 +229,16 @@ fun KycOnboardingScreen(
                         .testTag("kyc_phone_input"),
                     label = { Text("Phone Number (+91)") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFD0BCFF))
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFD0BCFF),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFD0BCFF),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -233,7 +251,16 @@ fun KycOnboardingScreen(
                         .testTag("kyc_vehicle_model_input"),
                     label = { Text("Vehicle Make & Model (e.g., Swift Dzire)") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFD0BCFF))
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFD0BCFF),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFD0BCFF),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -246,7 +273,16 @@ fun KycOnboardingScreen(
                         .testTag("kyc_vehicle_number_input"),
                     label = { Text("Registration Number (e.g., UP 78 AB 1234)") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFD0BCFF))
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFD0BCFF),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFD0BCFF),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

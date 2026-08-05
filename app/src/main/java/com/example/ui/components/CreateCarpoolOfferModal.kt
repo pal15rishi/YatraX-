@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,7 +79,16 @@ fun CreateCarpoolOfferModal(
                         .testTag("carpool_host_name_input"),
                     label = { Text("Your Name") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFFF6D00))
+                    textStyle = TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFFF6D00),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFFF6D00),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -91,7 +101,16 @@ fun CreateCarpoolOfferModal(
                         .testTag("carpool_vehicle_input"),
                     label = { Text("Vehicle & Reg No.") },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFFF6D00))
+                    textStyle = TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFFFF6D00),
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFFF6D00),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -108,7 +127,16 @@ fun CreateCarpoolOfferModal(
                             .testTag("carpool_seats_input"),
                         label = { Text("Seats") },
                         singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFFF6D00))
+                        textStyle = TextStyle(color = Color.White),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFFFF6D00),
+                            unfocusedBorderColor = Color(0xFF49454F),
+                            focusedLabelColor = Color(0xFFFF6D00),
+                            unfocusedLabelColor = Color(0xFFCAC4D0),
+                            cursorColor = Color.White
+                        )
                     )
 
                     OutlinedTextField(
@@ -119,7 +147,16 @@ fun CreateCarpoolOfferModal(
                             .testTag("carpool_price_input"),
                         label = { Text("Price (₹/Seat)") },
                         singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFFF6D00))
+                        textStyle = TextStyle(color = Color.White),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFFFF6D00),
+                            unfocusedBorderColor = Color(0xFF49454F),
+                            focusedLabelColor = Color(0xFFFF6D00),
+                            unfocusedLabelColor = Color(0xFFCAC4D0),
+                            cursorColor = Color.White
+                        )
                     )
                 }
 

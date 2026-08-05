@@ -27,12 +27,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+
 @Composable
 fun SosEmergencyDialog(
     locationName: String,
     onConfirmSos: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -64,14 +69,14 @@ fun SosEmergencyDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Dispatching live GPS location to Kanpur Police Helpline (112) and your emergency contacts.",
+                    text = "Dispatching live GPS location to Emergency Helpline (112) and dialing police.",
                     fontSize = 12.sp,
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
 
                 Text(
-                    text = "Current GPS Pin: $locationName",
+                    text = "Current Location: $locationName",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFEC4899),
@@ -81,7 +86,15 @@ fun SosEmergencyDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
-                    onClick = onConfirmSos,
+                    onClick = {
+                        onConfirmSos()
+                        try {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Handled gracefully
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
@@ -92,7 +105,7 @@ fun SosEmergencyDialog(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Trigger Police Alert Immediately", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Dial 112 Police Emergency Now", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

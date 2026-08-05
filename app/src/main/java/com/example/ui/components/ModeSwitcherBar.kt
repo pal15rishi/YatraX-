@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Female
 import androidx.compose.material.icons.filled.LocalTaxi
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -49,11 +51,14 @@ fun ModeSwitcherBar(
     isPinkShieldActive: Boolean,
     isNightSurgeActive: Boolean,
     kycStatus: String?,
+    isAdmin: Boolean = false,
+    userPhone: String = "",
     onModeSelected: (RideMode) -> Unit,
     onTogglePinkShield: () -> Unit,
     onToggleNightMode: () -> Unit,
     onOpenKycScreen: () -> Unit,
     onOpenAdminPanel: () -> Unit,
+    onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -204,18 +209,36 @@ fun ModeSwitcherBar(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    // Admin Panel Button
+                    // Admin Panel Button (ONLY visible when logged in as verified ADMIN)
+                    if (isAdmin) {
+                        IconButton(
+                            onClick = onOpenAdminPanel,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("admin_panel_button")
+                        ) {
+                            Icon(
+                                Icons.Default.AdminPanelSettings,
+                                contentDescription = "Admin Panel",
+                                tint = Color(0xFFFF6D00),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
+                    // Logout Button to switch accounts / roles easily
                     IconButton(
-                        onClick = onOpenAdminPanel,
+                        onClick = onLogout,
                         modifier = Modifier
                             .size(32.dp)
-                            .testTag("admin_panel_button")
+                            .testTag("logout_button")
                     ) {
                         Icon(
-                            Icons.Default.AdminPanelSettings,
-                            contentDescription = "Admin Panel",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            Icons.Default.ExitToApp,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }

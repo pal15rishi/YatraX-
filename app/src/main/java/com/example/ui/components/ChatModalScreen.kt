@@ -189,11 +189,17 @@ fun ChatModalScreen(
                             .testTag("chat_message_input"),
                         placeholder = { Text("Type message to driver...", fontSize = 13.sp) },
                         singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
                             focusedBorderColor = Color(0xFFD0BCFF),
                             unfocusedBorderColor = Color(0xFF49454F),
                             focusedContainerColor = Color(0xFF2B2930),
-                            unfocusedContainerColor = Color(0xFF2B2930)
+                            unfocusedContainerColor = Color(0xFF2B2930),
+                            cursorColor = Color.White,
+                            focusedPlaceholderColor = Color(0xFFCAC4D0),
+                            unfocusedPlaceholderColor = Color(0xFFCAC4D0)
                         ),
                         shape = RoundedCornerShape(24.dp)
                     )

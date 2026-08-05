@@ -103,9 +103,17 @@ fun RatingReviewModal(
                         .testTag("rating_review_input"),
                     placeholder = { Text("Write feedback for driver (optional)", fontSize = 12.sp) },
                     maxLines = 3,
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
                         focusedBorderColor = Color(0xFFD0BCFF),
-                        unfocusedBorderColor = Color(0xFF49454F)
+                        unfocusedBorderColor = Color(0xFF49454F),
+                        focusedLabelColor = Color(0xFFD0BCFF),
+                        unfocusedLabelColor = Color(0xFFCAC4D0),
+                        cursorColor = Color.White,
+                        focusedPlaceholderColor = Color(0xFFCAC4D0),
+                        unfocusedPlaceholderColor = Color(0xFFCAC4D0)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
